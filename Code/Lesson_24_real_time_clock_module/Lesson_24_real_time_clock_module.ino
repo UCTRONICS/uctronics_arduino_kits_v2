@@ -20,7 +20,7 @@ uint8_t value=0;
 
 void setup () 
 {
-    Serial.begin(57600);   
+    Serial.begin(9600);   
     Rtc.Begin();
     RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
     Rtc.setDateTime(2017, 6, 13, 16, 29, 3,compiled);
@@ -52,6 +52,3 @@ void loop ()
     Serial.println(buffer); 
     delay(1000);
 }
-
-
-

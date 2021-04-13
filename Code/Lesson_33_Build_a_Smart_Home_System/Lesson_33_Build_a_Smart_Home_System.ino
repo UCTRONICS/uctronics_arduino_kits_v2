@@ -10,13 +10,13 @@ Date: 2017/06/12
 #include <dht11.h>
 #include <LiquidCrystal.h>
 #include <Wire.h>
-#include <DS3231.h>
+#include <ThreeWire.h>  
+#include <RtcDS1302.h>
 #include "uartWIFI.h"
 #include <SoftwareSerial.h>
 
 #define SSID "KK"                  //type your own SSID name
 #define PASSWORD "12345687"        //type your own WIFI password
-
 
 #define Temp_maxlimit  30         // type your Maximum temperature 
 #define Temp_minlimit  24         // type your Minimum temperature 
@@ -25,8 +25,9 @@ Date: 2017/06/12
 WIFI wifi;
 extern int chlID;        //client id(0-4)
 
-DS3231 clock;
-RTCDateTime dt;
+ThreeWire myWire(14,15,16); // IO, SCLK, CE
+RtcDS1302<ThreeWire> Rtc(myWire);
+DateTime dt;
 dht11 DHT11;
                                                                                                                                                                                                                                                                                                                       
 const int DHT11PIN = A0;
@@ -53,7 +54,7 @@ void setup()
    pinMode(IN3, OUTPUT);
    pinMode(IN4, OUTPUT);   
    Serial.begin(9600);  
-   clock.begin();  
+   Rtc.Begin();
    lcd.begin(16, 2);        //set up the LCD's number of columns and rows: 
    lcd.clear();             //Clears the LCD screen and positions the cursor in the upper-left corner 
    ESP8266_init ();
@@ -63,9 +64,8 @@ void setup()
 void loop() 
 {
 
-  dt = clock.getDateTime();  //Get time from RTC module
+  dt = Rtc.DataTime();  //Get time from RTC module
   wifi_recv ();              //Receive wifi data
-  
   n++;
   if (n==5)                 //Loop 5 times 
   {  
@@ -79,7 +79,6 @@ void loop()
   Update_data ();           //Update the temperature and humidity to APP
   SenorData_process ();     //Check the data from each channel
   Control ();               //Control motor according to the result of the previous function
-
 
   delay (100);
 
@@ -326,12 +325,14 @@ void motor2_stop (void)
 ***********************************************************/
 void LCD_display (void)
 { 
+  char buffer[150]={0};
+  Rtc.dateFormat("jS M y, h:ia", dt,buffer);
   n=0; 
   lcd.setCursor(0, 0);   
-  lcd.print(clock.dateFormat("jS M y, h:ia", dt)+lcd_off1);  
+  lcd.print(buffer+lcd_off1);  
   lcd.setCursor(0, 1);
-  //Serial.println(DHT11.humidity);
-  //Serial.println(DHT11.temperature);
+  Serial.println(DHT11.humidity);
+  Serial.println(DHT11.temperature);
   lcd.print((float)DHT11.humidity, 2);// Print a message of Humidity to the LCD.
   lcd.print(" % "); // Print the unit of the centigrade temperature to the LCD.
   lcd.print((float)DHT11.temperature, 2);// Print a centigrade temperature to the LCD. 
@@ -399,4 +400,3 @@ void ESP8266_init (void)
     lcd.print("Server is set up");
   }
 }
-

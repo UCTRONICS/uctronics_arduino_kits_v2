@@ -6,14 +6,18 @@ E-mail: sales@uctronics.com
 Author: Lee
 Date: 2017/06/12
 ***********************************************************/
-#include <Wire.h>
-#include <DS3231.h>
-DS3231 clock;
-RTCDateTime dt;
+#include <ThreeWire.h>  
+#include <RtcDS1302.h>
+
+ThreeWire myWire(14,15,16); // IO, SCLK, CE
+RtcDS1302<ThreeWire> Rtc(myWire);
+DateTime dt;
+
 void setup() 
 {
-  clock.begin();
-  clock.setDateTime(__DATE__, __TIME__);
+  Rtc.Begin();
+  RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
+  Rtc.setDateTime(2021,4,13,13,49,0,compiled);
 }
 
 void loop() 
